@@ -1,19 +1,22 @@
 import 'package:fantasy_adventurer_slot/config/slot_game_config.dart';
+import 'package:fantasy_adventurer_slot/game/slot_machine.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 class SlotGame extends FlameGame with HasTappables, HasCollisionDetection {
-  /// 相機場景大小
-  final Vector2 cameraFixedViewPort = Vector2(900.0, 1334.0);
+
+  SlotMachine? slotMachine;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
     // 設定遊戲相機
     _setupCamera();
 
-    // 設定遊戲場景
-    _setupScenes();
+    // 設定老虎機
+    _setupSlotMachine();
   }
 
   /// 設定遊戲相機
@@ -30,8 +33,12 @@ class SlotGame extends FlameGame with HasTappables, HasCollisionDetection {
     camera.viewport = FixedResolutionViewport(SlotGameConfig.cameraFixedViewPort);
   }
 
-  /// 設定遊戲場景
-  void _setupScenes() {
-
+  /// 設定老虎機
+  void _setupSlotMachine() {
+    var barWidth = (SlotGameConfig.cameraFixedViewPort.x * 0.7) / SlotGameConfig.multiplication.x;
+    var position = Vector2(SlotGameConfig.cameraFixedViewPort.x / 2, SlotGameConfig.cameraFixedViewPort.y / 2.2);
+    var size = Vector2(barWidth * SlotGameConfig.multiplication.x, barWidth * SlotGameConfig.multiplication.y);
+    slotMachine = SlotMachine(multiplication: SlotGameConfig.multiplication, position: position, size: size);
+    add(slotMachine!);
   }
 }

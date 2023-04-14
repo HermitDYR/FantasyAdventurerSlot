@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 
+/// 齒輪狀態
 enum GearStatus {
   unknown,
   idle,
@@ -7,13 +8,15 @@ enum GearStatus {
   finish,
 }
 
-abstract class Gear extends Component {
+/// 齒輪抽象類別
+mixin Gear on Component {
   /// 狀態
   GearStatus status = GearStatus.unknown;
 
   /// 開始時間
   get beginTime => _beginTime;
 
+  /// 開始時間
   double _beginTime = 0.0;
 
   /// 是否運行
@@ -26,7 +29,7 @@ abstract class Gear extends Component {
   bool isFinish = false;
 
   /// 完成時間
-  double finishTime = 0.0;
+  double? finishTime;
 
   /// 完成回調
   Function(double begin, double run, double finished)? onFinish;
@@ -46,10 +49,10 @@ abstract class Gear extends Component {
       runTime += dt;
     }
 
-    if (runTime >= finishTime) {
+    if (finishTime != null && runTime >= finishTime!) {
       if (isFinish == false) {
         isFinish = true;
-        finished(finishTime);
+        finished(finishTime!);
       }
       return;
     }
@@ -59,19 +62,20 @@ abstract class Gear extends Component {
 
   void idle() {
     print("I'm idle.");
-    status =  GearStatus.idle;
+    status = GearStatus.idle;
   }
 
   void run(double dtBegin) {
     print("I'm running~~~");
-    status =  GearStatus.run;
+    status = GearStatus.run;
     _beginTime = dtBegin;
   }
 
   void finished(double dtFinish) {
     print("I'm finished~~~ $dtFinish");
+    status = GearStatus.finish;
     if (onFinish != null) {
-      onFinish!(beginTime, runTime, finishTime);
+      onFinish!(beginTime, runTime, finishTime!);
     }
   }
 }
