@@ -1,5 +1,6 @@
 import 'package:fantasy_adventurer_slot/abstract/gear.dart';
 import 'package:fantasy_adventurer_slot/config/slot_game_config.dart';
+import 'package:fantasy_adventurer_slot/game/slot_bar_box.dart';
 import 'package:fantasy_adventurer_slot/game/slot_game.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -13,8 +14,20 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
   /// 老虎機槽條物件數量
   int itemCount;
 
+  /// 老虎機槽條物件內容編號陣列
+  List<int>? _itemIdList;
+
+  /// 老虎機槽條物件中獎索引陣列
+  List<int>? _itemLotteryIndexList;
+
+  /// 老虎機槽條物件箱
+  SlotBarBox? targetSlotBarBox;
+
   /// 老虎機槽條物件箱進入停留狀態
   Function(int index)? onStayFromSlotBarBox;
+
+  /// 老虎機槽條物件箱累計新增數量
+  int slotBarBoxAddedCount = 0;
 
   /// 上方外部錨點
   Vector2 _topOutsideAnchorPoint = Vector2.zero();
@@ -42,8 +55,10 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
 
   @override
   Future<void>? onLoad() async {
-    // TODO: 測試模式 (這個會降低效能，非必要不要開著)
-    add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
+    if (SlotGameConfig.isDebugMode) {
+      // TODO: 測試模式 (這個會降低效能，非必要不要開著)
+      add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
+    }
 
     // 設定錨點陣列
     _setupAnchorPoints();
@@ -52,7 +67,7 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
     // await _setupFakeSlotBarBoxSpriteAnimation();
 
     // 將老虎機槽條物件箱子新增到內部錨點上
-    // addSlotBarBoxAtInside();
+    addSlotBarBoxAtInside();
 
     return super.onLoad();
   }
@@ -83,28 +98,30 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
 
   /// 將老虎機槽條物件箱子新增到內部錨點上
   void addSlotBarBoxAtInside() {
+    if (gameRef.slotMachine == null) return;
+
     // 取得遊戲模式開獎盤面(用於運作程式邏輯)
-    // List<List<int>> lottery = SlotGameConfig.getGameModeLottery(designModeAllLotteryList: gameRef.slotMachine.designModeAllLotteryList, index: 0);
-    // targetSlotBarBox = null;
-    // targetSlotBarBox = SlotBarBox(
-    //   index: index,
-    //   itemCount: itemCount,
-    //   position: _insideAnchorPoint,
-    //   size: size,
-    //   stayPosition: _insideAnchorPoint,
-    //   removePosition: _bottomOutsideAnchorPoint,
-    //   speed: gameRef.slotMachine.slotBarBoxMoveSpeed.toDouble(),
-    //   isStay: true,
-    //   onStay: onStayFromSlotBarBox,
-    //   itemIdList: lottery[index],
-    //   itemLotteryIndexList: _itemLotteryIndexList,
-    //   onRemovePosition: _onRemovePosition,
-    //   // onCollisionWithBottomReplyBox: _onCollisionWithBottomReplyBoxFromSlotBarBox,
-    // );
-    // add(targetSlotBarBox!);
-    // slotBarBoxAddedCount++;
-    // _itemIdList = null;
-    // _itemLotteryIndexList = null;
+    List<List<int>> lottery = SlotGameConfig.getGameModeLottery(designModeAllLotteryList: gameRef.slotMachine!.designModeAllLotteryList, index: 0);
+    targetSlotBarBox = null;
+    targetSlotBarBox = SlotBarBox(
+      index: index,
+      itemCount: itemCount,
+      position: _insideAnchorPoint,
+      size: size,
+      stayPosition: _insideAnchorPoint,
+      removePosition: _bottomOutsideAnchorPoint,
+      speed: gameRef.slotMachine!.slotBarBoxMoveSpeed.toDouble(),
+      isStay: true,
+      onStay: onStayFromSlotBarBox,
+      itemIdList: (lottery.length > 0) ? lottery[index] : [],
+      itemLotteryIndexList: _itemLotteryIndexList,
+      onRemovePosition: _onRemovePosition,
+      // onCollisionWithBottomReplyBox: _onCollisionWithBottomReplyBoxFromSlotBarBox,
+    );
+    add(targetSlotBarBox!);
+    slotBarBoxAddedCount++;
+    _itemIdList = null;
+    _itemLotteryIndexList = null;
   }
 
   /// 設置假的老虎機槽條物件箱動畫精靈
@@ -145,6 +162,13 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
         removeOnFinish: true,
       );
       add(fakeSlotBarBox!);
+    }
+  }
+
+  /// 待補
+  void _onRemovePosition(int index) {
+    if (targetSlotBarBox != null) {
+      targetSlotBarBox = null;
     }
   }
 }

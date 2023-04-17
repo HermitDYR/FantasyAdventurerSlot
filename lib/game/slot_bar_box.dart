@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:fantasy_adventurer_slot/abstract/gear.dart';
 import 'package:fantasy_adventurer_slot/config/slot_game_config.dart';
 import 'package:fantasy_adventurer_slot/game/slot_game.dart';
-import 'package:fantasy_adventurer_slot/game/slot_item.dart';
+import 'package:fantasy_adventurer_slot/game/slot_item_box.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,7 +13,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   /// 索引
   int index;
 
-  /// 老虎機滾輪物件數量
+  /// 老虎機槽條物件數量
   int itemCount;
 
   /// 生成位置
@@ -37,10 +37,10 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   /// 預設速度
   double speed = 2.5;
 
-  /// 老虎機滾輪物件內容編號陣列
+  /// 老虎機槽條物件內容編號陣列
   List<int>? itemIdList;
 
-  /// 老虎機滾輪物件中獎索引陣列
+  /// 老虎機槽條物件中獎索引陣列
   List<int>? itemLotteryIndexList;
 
   /// 錨點陣列
@@ -65,18 +65,17 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
 
   @override
   Future<void>? onLoad() async {
-    // TODO: 測試模式 (這個會降低效能，非必要不要開著)
-    add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
+    if (SlotGameConfig.isDebugMode) {
+      // TODO: 測試模式 (這個會降低效能，非必要不要開著)
+      add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
+    }
 
     _generatePosition = position;
-
-    // // 設置碰撞檢測
-    // _setupHitBox();
 
     // 設定錨點陣列
     _setupAnchorPoints();
 
-    // 設置老虎機滾輪物件組
+    // 設置老虎機槽條物件組
     _setupSlotItems();
 
     return super.onLoad();
@@ -128,12 +127,14 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   }
 
 
-  /// 設置老虎機滾輪物件組
+  /// 設置老虎機槽條物件組
   void _setupSlotItems() {
+    if (gameRef.slotMachine == null) return;
+
     for (int i = 0; i < itemCount; i++) {
       // 判斷是否為中獎物件
       bool isLottery = false;
-      if (itemLotteryIndexList != null) {
+      if (itemLotteryIndexList != null && itemLotteryIndexList!.length > 0) {
         final find = itemLotteryIndexList!.where((element) {
           return (element == i);
         });
@@ -144,10 +145,10 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       itemIdList ??= [];
       if (i < (itemIdList!.length)) {
         final itemId = itemIdList![i];
-        final targetSlotItem = SlotItem(
+        final targetSlotItem = SlotItemBox(
           index: i,
           id: itemId,
-          sprite: gameRef.slotMachine.rollItemSprites[itemId],
+          // sprite: (gameRef.slotMachine!.rollItemSprites.length > 0) ? gameRef.slotMachine!.rollItemSprites[itemId] : null,
           size: Vector2(size.x * 1, size.x * 1),
           position: _anchorPoints![i],
           isTarget: true,
@@ -155,11 +156,11 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
         );
         add(targetSlotItem);
       } else {
-        final itemId = Random().nextInt(gameRef.slotMachine.rollItemSpritesCount);
-        final randomSlotItem = SlotItem(
+        final itemId = Random().nextInt(gameRef.slotMachine!.rollItemSpritesCount);
+        final randomSlotItem = SlotItemBox(
           index: i,
           id: itemId,
-          sprite: gameRef.slotMachine.rollItemSprites[itemId],
+          // sprite: (gameRef.slotMachine!.rollItemSprites.isNotEmpty) ? gameRef.slotMachine!.rollItemSprites[itemId] : null,
           size: Vector2(size.x * 1, size.x * 1),
           position: _anchorPoints![i],
           isTarget: false,
@@ -170,11 +171,11 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
     }
   }
 
-  /// 取得老虎機滾輪
-  SlotItem? getSlotItem({required int index}) {
+  /// 取得老虎機槽條內容物件
+  SlotItemBox? getSlotItem({required int index}) {
     for (Component component in children.toList()) {
-      if (component is SlotItem) {
-        SlotItem slotItem = component;
+      if (component is SlotItemBox) {
+        SlotItemBox slotItem = component;
         if (slotItem.index == index) {
           return component;
         }

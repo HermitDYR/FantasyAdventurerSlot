@@ -28,6 +28,19 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
   /// 盤面乘法 (x * y)
   Vector2 multiplication = Vector2.zero();
 
+  /// 老虎機槽條物件的精靈數量
+  final rollItemSpritesCount = 11;
+
+  /// 老虎機槽條物件的精靈列表
+  final List<Sprite> rollItemSprites = [];
+
+  /// 符合RTP中獎機率的設計模式開獎盤面列表(包含中獎、未中獎)
+  List<List<List<int>>> designModeAllLotteryList = [];
+
+  /// 老虎機槽條箱移動速度
+  final double slotBarBoxMoveSpeed = 2;
+
+  /// 老虎機槽條箱
   SlotMachineBarsBox? slotMachineBarsBox;
 
   /// 老虎機
