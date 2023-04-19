@@ -28,6 +28,9 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   /// 進入停留狀態
   Function(int index)? onStay;
 
+  /// 是否移動
+  bool isMove = true;
+
   /// 移除位置
   Vector2? removePosition;
 
@@ -81,29 +84,41 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
     return super.onLoad();
   }
 
-  /// 測試錨點標示物件
-  RectangleComponent _getDebugAnchorItem({
-    required Vector2 size,
-    required Vector2 position,
-    required Color pointColor,
-    required Color contentColor,
-  }) {
-    return RectangleComponent(
-        size: size,
-        position: position,
-        anchor: Anchor.center,
-        children: [
-          CircleComponent(
-              radius: 15,
-              position: Vector2(size.x / 2, size.y / 2),
-              anchor: Anchor.center,
-              paint: Paint()
-                ..color = pointColor
-                ..style = PaintingStyle.fill)
-        ],
-        paint: Paint()
-          ..color = contentColor
-          ..style = PaintingStyle.fill);
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // 如果停留狀態啟用，則停止在停留點
+    if (isStay) {
+      if (stayPosition != null && position.y > stayPosition!.y) {
+        position = stayPosition!;
+        // print("SlotBarBox $index >> update to isStay~~~");
+        isMove = !isStay;
+
+        // 展示彈跳效果
+        showBounce();
+
+        if (onStay != null) {
+          // 進入停留狀態
+          onStay!(index);
+        }
+      }
+    }
+
+    if (isMove) {
+      // 持續向下
+      var x = position.x;
+      var y = position.y + (dt * size.y * speed);
+      position = Vector2(x, y);
+    }
+
+    if (position.y >= removePosition!.y) {
+      // 刪除
+      removeFromParent();
+      if (onRemovePosition != null) {
+        onRemovePosition!(index);
+      }
+    }
   }
 
   /// 設定錨點陣列
@@ -116,7 +131,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       var point = Vector2(startPoint.x, startPoint.y + (i * itemHeight));
       _anchorPoints!.add(point);
       if (SlotGameConfig.isDebugMode) {
-        add(_getDebugAnchorItem(
+        add(getDebugAnchorRect(
           size: Vector2(itemWidth, itemWidth),
           position: point,
           pointColor: (itemIdList != null) ? Colors.white : Colors.black,
@@ -183,4 +198,29 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
     }
     return null;
   }
+
+  /// 展示彈跳效果
+  void showBounce() {
+    for (int i = 0; i < itemCount; i++) {
+      SlotItemBox? slotItem = getSlotItem(index: i);
+      if (slotItem != null) {
+        // 靜止後的回彈
+        slotItem.effectBounce();
+      }
+    }
+  }
+
+  /// 展示中獎效果
+  void showLottery() {
+    for (int i = 0; i < itemCount; i++) {
+      SlotItemBox? slotItem = getSlotItem(index: i);
+      if (slotItem != null) {
+        if (slotItem.isLottery) {
+          // 靜止後回彈 >> 縮放
+          slotItem.effectBounceAfterScale();
+        }
+      }
+    }
+  }
+
 }

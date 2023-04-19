@@ -95,6 +95,30 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
       add(_getDebugAnchorPoint(position: _bottomOutsideAnchorPoint, color: Colors.red));
     }
   }
+  /// 將老虎機滾輪物件箱子新增到上方外部錨點上
+  void addSlotBarBoxAtTopOutside() {
+    if (gameRef.slotMachine == null || targetSlotBarBox != null) return;
+
+    targetSlotBarBox = SlotBarBox(
+      index: index,
+      itemCount: itemCount,
+      position: _topOutsideAnchorPoint,
+      size: size,
+      stayPosition: _insideAnchorPoint,
+      removePosition: _bottomOutsideAnchorPoint,
+      speed: gameRef.slotMachine!.slotBarBoxMoveSpeed.toDouble(),
+      isStay: (_itemIdList != null),
+      onStay: onStayFromSlotBarBox,
+      itemIdList: _itemIdList,
+      itemLotteryIndexList: _itemLotteryIndexList,
+      onRemovePosition: _onRemovePosition,
+      // onCollisionWithBottomReplyBox: _onCollisionWithBottomReplyBoxFromSlotBarBox,
+    );
+    add(targetSlotBarBox!);
+    slotBarBoxAddedCount++;
+    _itemIdList = null;
+    _itemLotteryIndexList = null;
+  }
 
   /// 將老虎機槽條物件箱子新增到內部錨點上
   void addSlotBarBoxAtInside() {
@@ -122,6 +146,16 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
     slotBarBoxAddedCount++;
     _itemIdList = null;
     _itemLotteryIndexList = null;
+  }
+
+  /// 設置老虎機滾輪物件內容編號陣列
+  void setupItemIdList({required List<int> itemIdList}) {
+    _itemIdList = itemIdList;
+  }
+
+  /// 設置老虎機滾輪物件中獎索引陣列
+  void setupItemLotteryIndexList({required List<int>? itemLotteryIndexList}) {
+    _itemLotteryIndexList = itemLotteryIndexList;
   }
 
   /// 設置假的老虎機槽條物件箱動畫精靈
@@ -169,6 +203,17 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
   void _onRemovePosition(int index) {
     if (targetSlotBarBox != null) {
       targetSlotBarBox = null;
+    }
+  }
+
+  /// 開始滾動
+  void spin() {
+    // print("SlotBar $index is spin!!!");
+    if (targetSlotBarBox != null && targetSlotBarBox!.isStay) {
+      print("SlotBar $index is spin!!! Do!!!");
+      targetSlotBarBox!.isStay = false;
+      // targetSlotBarBox!.isCollisionWithBottomReplyBox = false;
+      targetSlotBarBox!.isMove = true;
     }
   }
 }

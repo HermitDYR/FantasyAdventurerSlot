@@ -1,4 +1,5 @@
 import 'package:fantasy_adventurer_slot/config/slot_game_config.dart';
+import 'package:fantasy_adventurer_slot/game/slot_game_spin_button.dart';
 import 'package:fantasy_adventurer_slot/game/slot_machine.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/game.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/material.dart';
 class SlotGame extends FlameGame with HasTappables, HasCollisionDetection {
 
   SlotMachine? slotMachine;
+
+  SlotGameSpinButton? slotGameSpinButton;
 
   @override
   Future<void> onLoad() async {
@@ -17,6 +20,33 @@ class SlotGame extends FlameGame with HasTappables, HasCollisionDetection {
 
     // 設定老虎機
     _setupSlotMachine();
+
+    // 設定老虎機滾動按鈕
+    _setupSlotSpinButton();
+
+  }
+
+  /// 設定老虎機滾動按鈕
+  void _setupSlotSpinButton() {
+    final size = Vector2(150.0, 150.0);
+    final position = Vector2(SlotGameConfig.cameraFixedViewPort.x/2, SlotGameConfig.cameraFixedViewPort.y - size.y * 1.2);
+    slotGameSpinButton = SlotGameSpinButton(position: position, size: size, onTap: _onTapSpinButton)..setIsLock(false);
+    slotGameSpinButton!.setIsLock(false);
+    add(slotGameSpinButton!);
+  }
+
+  /// 老虎機滾動按鈕點擊響應事件
+  void _onTapSpinButton(SlotGameSpinButton button, bool isSpin) {
+    button.setIsLock(false);
+    print("_onTapSpinButton isSpin: $isSpin");
+    if (slotMachine == null) return;
+    if (!isSpin) {
+      // 如果按鈕正在Spin狀態則老虎機停止
+      slotMachine!.stop();
+    } else {
+      // 如果按鈕正在Stop狀態則老虎機轉動
+      slotMachine!.spin();
+    }
   }
 
   /// 設定遊戲相機
