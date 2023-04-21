@@ -7,8 +7,12 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
+import 'package:flame/text.dart';
+import 'package:flutter/cupertino.dart';
 
 class SlotItemBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
+  /// 槽條索引
+  int barIndex;
 
   /// 索引
   int index;
@@ -30,6 +34,7 @@ class SlotItemBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
 
   /// 老虎機槽條內容物件
   SlotItemBox({
+    required this.barIndex,
     required this.index,
     required this.id,
     required Vector2 size,
@@ -56,6 +61,12 @@ class SlotItemBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
     }
 
+    add(TextComponent(
+      text: "$barIndex-$index-$id",
+      textRenderer: TextPaint(style: TextStyle(color: BasicPalette.white.color)),
+      scale: Vector2(5, 5),
+    ));
+
     return super.onLoad();
   }
 
@@ -63,9 +74,9 @@ class SlotItemBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   void update(double dt) {
     super.update(dt);
     // if (isTarget) {
-      speed ??= _defaultSpeed;
-      angle += speed! * dt;
-      angle %= 2 * math.pi;
+    speed ??= _defaultSpeed;
+    angle += speed! * dt;
+    angle %= 2 * math.pi;
     // print("angle: $angle");
     // }
 

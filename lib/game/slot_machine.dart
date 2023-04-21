@@ -12,10 +12,13 @@ import 'package:flame/components.dart';
 enum SlotMachineActionType {
   /// 未知
   unknown,
+
   /// 待機
   idle,
+
   /// 轉動
   spin,
+
   /// 停止
   stop,
 }
@@ -32,8 +35,7 @@ class SlotMachineAction {
   double delay = 0.0;
 }
 
-class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
-
+class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame> {
   SlotMachineActionType actionType = SlotMachineActionType.idle;
 
   /// 盤面乘法 (x * y)
@@ -106,12 +108,17 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
     required Vector2? size,
   }) : super(position: position, size: size, anchor: Anchor.center);
 
-
   @override
   Future<void>? onLoad() async {
     // TODO: implement onLoad
     // TODO: 測試模式 (這個會降低效能，非必要不要開著)
     add(RectangleHitbox()..debugMode = SlotGameConfig.isDebugMode);
+
+    // 取得符合RTP中獎機率的設計模式開獎盤面列表(包含中獎、未中獎)
+    designModeAllLotteryList = SlotGameConfig.getDesignModeAllLotteryList(gameRTP: gameRef.gameRTP);
+
+    // 取得符合RTP中獎機率的分數列表(包含中獎、未中獎)
+    allLotteryPointList = SlotGameConfig.getAllLotteryPointList(gameRTP: gameRef.gameRTP);
 
     // 設置槽條箱
     _setupSlotBarsBox();
@@ -155,12 +162,27 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
   /// 設置槽條箱
   void _setupSlotBarsBox() {
     var position = Vector2(this.size.x / 2, this.size.y / 2);
-    slotMachineBarsBox = SlotMachineBarsBox(multiplication: multiplication, position: position, size: this.size);
+    slotMachineBarsBox = SlotMachineBarsBox(
+      multiplication: multiplication,
+      position: position,
+      size: this.size,
+      onAllBarStay: _onAllSlotBarBoxStay,
+      onAllBarRemove: _onAllSlotBarBoxRemove,
+    );
     add(slotMachineBarsBox!);
   }
 
-  void _checkSlotBarToSpin(double time) {
+  /// 所有的槽條皆進入停留狀態
+  void _onAllSlotBarBoxStay() {
+    print("_onAllSlotBarBoxStay~~~");
+  }
 
+  /// 所有的槽條皆進入移除狀態
+  void _onAllSlotBarBoxRemove() {
+    print("_onAllSlotBarBoxRemove...");
+  }
+
+  void _checkSlotBarToSpin(double time) {
     var list = [];
     for (int i = 0; i < multiplication.x; i++) {
       list.add(buttonTimePoint + (i * slotBarSpinDelay));
@@ -170,7 +192,6 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
       for (int i = 0; i < multiplication.x; i++) {
         SlotBar? slotBar = slotMachineBarsBox!.getSlotBar(index: i);
         if (slotBar != null) {
-
           if (time > list[i] && time < (slotBarSpinDelay + list[i])) {
             // 寫法一，同步滾動
             slotBar.spin();
@@ -179,6 +200,7 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
           if (time > (list[i] + fakeSlotBarBoxAddDelay) && time < (slotBarSpinDelay + list[i] + fakeSlotBarBoxAddDelay)) {
             // 設置假的老虎機滾輪物件箱
             slotBar.addFakeSlotBarBox();
+            // slotBar.addSlotBarBoxAtTopOutside();
           }
         }
       }
@@ -223,7 +245,6 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
       }
     }
   }
-
 
   /// 取得當前Bar有中獎的索引陣列
   /// - 判斷橫向直線開獎，確認每個Bar裡相同的Index下LotteryNumber是否一致
@@ -390,5 +411,4 @@ class SlotMachine extends PositionComponent with Gear, HasGameRef<SlotGame>{
       // _checkBonusGame();
     }
   }
-
 }

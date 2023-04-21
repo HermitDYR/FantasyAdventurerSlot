@@ -11,10 +11,13 @@ class SlotMachineBarsBox extends PositionComponent with Gear, HasGameRef<SlotGam
   Vector2 multiplication = Vector2.zero();
 
   /// 停留次數
-  int _barStayCount = 0;
+  int _barBaxActionStep = 0;
 
   /// 所有的槽條皆進入停留狀態
   Function()? onAllBarStay;
+
+  /// 所有的槽條皆進入移除狀態
+  Function()? onAllBarRemove;
 
   /// 老虎機槽條箱
   SlotMachineBarsBox({
@@ -22,6 +25,7 @@ class SlotMachineBarsBox extends PositionComponent with Gear, HasGameRef<SlotGam
     required Vector2? position,
     required Vector2? size,
     this.onAllBarStay,
+    this.onAllBarRemove,
   }) : super(position: position, size: size, anchor: Anchor.center);
 
   @override
@@ -48,21 +52,46 @@ class SlotMachineBarsBox extends PositionComponent with Gear, HasGameRef<SlotGam
         itemCount: multiplication.y.toInt(),
         position: Vector2(position.x + (i * size.x), position.y),
         size: size,
-        onStayFromSlotBarBox: _onStayFromSlotBarBox,
+        onStaySlotBarBox: _onStaySlotBarBox,
+        onMoveSlotBarBox: _onMoveSlotBarBox,
+        onRemoveSlotBarBox: _onRemoveSlotBarBox,
       );
       add(slotBar);
     }
   }
 
   /// 老虎機槽條物件箱進入停留狀態
-  void _onStayFromSlotBarBox(int index) {
-    print("SlotMachineBarsBox >> _onStayFromSlotBarBox index: $index");
-    _barStayCount++;
-    if (_barStayCount >= multiplication.x) {
+  void _onStaySlotBarBox(int index) {
+    print("SlotMachineBarsBox >> _onStaySlotBarBox index: $index");
+    _barBaxActionStep++;
+    if (_barBaxActionStep >= multiplication.x) {
       if (onAllBarStay != null) {
         onAllBarStay!();
       }
-      _barStayCount = 0;
+      _barBaxActionStep = 0;
+    }
+  }
+
+  /// 老虎機槽條物件箱進入移動狀態
+  void _onMoveSlotBarBox(int index) {
+    print("SlotMachineBarsBox >> _onMoveSlotBarBox index: $index");
+    final slotBar = getSlotBar(index: index);
+    if (slotBar != null) {
+      print("!!!!wwwww");
+      slotBar!.targetSlotBarBox = null;
+      slotBar!.addSlotBarBoxAtTopOutside();
+    }
+  }
+
+  /// 老虎機槽條物件箱進入移除狀態
+  void _onRemoveSlotBarBox(int index) {
+    print("SlotMachineBarsBox >> _onRemoveSlotBarBox index: $index");
+    _barBaxActionStep++;
+    if (_barBaxActionStep >= multiplication.x) {
+      if (onAllBarRemove != null) {
+        onAllBarRemove!();
+      }
+      _barBaxActionStep = 0;
     }
   }
 

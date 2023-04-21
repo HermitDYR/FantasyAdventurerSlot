@@ -29,7 +29,13 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
   Function(int index)? onStay;
 
   /// 是否移動
-  bool isMove = true;
+  bool _isMove = true;
+
+  /// 是否移動
+  bool get isMove => _isMove;
+
+  /// 是否開始移動
+  Function(int index)? onMove;
 
   /// 移除位置
   Vector2? removePosition;
@@ -60,6 +66,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
     required this.speed,
     this.isStay = false,
     this.onStay,
+    this.onMove,
     this.itemIdList,
     this.itemLotteryIndexList,
     this.onRemovePosition,
@@ -93,7 +100,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       if (stayPosition != null && position.y > stayPosition!.y) {
         position = stayPosition!;
         // print("SlotBarBox $index >> update to isStay~~~");
-        isMove = !isStay;
+        setIsMove(!isStay);
 
         // 展示彈跳效果
         showBounce();
@@ -117,6 +124,20 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       removeFromParent();
       if (onRemovePosition != null) {
         onRemovePosition!(index);
+      }
+    }
+  }
+
+  /// 設置是否移動
+  void setIsMove(bool move) {
+    print("SlotBarBox >> setIsMove: $move");
+    _isMove = move;
+    if (_isMove) {
+      print("!!!!!!!!");
+      if (onMove != null) {
+        print("!!!!!!!!~~~~");
+        // 進入移動狀態
+        onMove!(index);
       }
     }
   }
@@ -161,6 +182,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       if (i < (itemIdList!.length)) {
         final itemId = itemIdList![i];
         final targetSlotItem = SlotItemBox(
+          barIndex: index,
           index: i,
           id: itemId,
           // sprite: (gameRef.slotMachine!.rollItemSprites.length > 0) ? gameRef.slotMachine!.rollItemSprites[itemId] : null,
@@ -173,6 +195,7 @@ class SlotBarBox extends PositionComponent with Gear, HasGameRef<SlotGame> {
       } else {
         final itemId = Random().nextInt(gameRef.slotMachine!.rollItemSpritesCount);
         final randomSlotItem = SlotItemBox(
+          barIndex: index,
           index: i,
           id: itemId,
           // sprite: (gameRef.slotMachine!.rollItemSprites.isNotEmpty) ? gameRef.slotMachine!.rollItemSprites[itemId] : null,

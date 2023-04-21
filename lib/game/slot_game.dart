@@ -11,6 +11,9 @@ class SlotGame extends FlameGame with HasTappables, HasCollisionDetection {
 
   SlotGameSpinButton? slotGameSpinButton;
 
+  /// 遊戲中獎機率(0.0~1.0)
+  double gameRTP = 0.5;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();

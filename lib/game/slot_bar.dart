@@ -24,7 +24,13 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
   SlotBarBox? targetSlotBarBox;
 
   /// 老虎機槽條物件箱進入停留狀態
-  Function(int index)? onStayFromSlotBarBox;
+  Function(int index)? onStaySlotBarBox;
+
+  /// 老虎機槽條物件箱進入移動狀態
+  Function(int index)? onMoveSlotBarBox;
+
+  /// 老虎機槽條物件箱進入移除狀態
+  Function(int index)? onRemoveSlotBarBox;
 
   /// 老虎機槽條物件箱累計新增數量
   int slotBarBoxAddedCount = 0;
@@ -50,7 +56,9 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
     required this.itemCount,
     required Vector2? position,
     required Vector2? size,
-    this.onStayFromSlotBarBox,
+    this.onStaySlotBarBox,
+    this.onMoveSlotBarBox,
+    this.onRemoveSlotBarBox,
   }) : super(position: position, size: size);
 
   @override
@@ -97,6 +105,7 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
   }
   /// 將老虎機滾輪物件箱子新增到上方外部錨點上
   void addSlotBarBoxAtTopOutside() {
+    print("addSlotBarBoxAtTopOutside~~~");
     if (gameRef.slotMachine == null || targetSlotBarBox != null) return;
 
     targetSlotBarBox = SlotBarBox(
@@ -108,7 +117,8 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
       removePosition: _bottomOutsideAnchorPoint,
       speed: gameRef.slotMachine!.slotBarBoxMoveSpeed.toDouble(),
       isStay: (_itemIdList != null),
-      onStay: onStayFromSlotBarBox,
+      onStay: onStaySlotBarBox,
+      onMove: onMoveSlotBarBox,
       itemIdList: _itemIdList,
       itemLotteryIndexList: _itemLotteryIndexList,
       onRemovePosition: _onRemovePosition,
@@ -136,7 +146,8 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
       removePosition: _bottomOutsideAnchorPoint,
       speed: gameRef.slotMachine!.slotBarBoxMoveSpeed.toDouble(),
       isStay: true,
-      onStay: onStayFromSlotBarBox,
+      onStay: onStaySlotBarBox,
+      onMove: onMoveSlotBarBox,
       itemIdList: (lottery.length > 0) ? lottery[index] : [],
       itemLotteryIndexList: _itemLotteryIndexList,
       onRemovePosition: _onRemovePosition,
@@ -199,10 +210,15 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
     }
   }
 
-  /// 待補
+  /// 老虎機槽條物件箱移動到移除錨點
   void _onRemovePosition(int index) {
+    // 移除目標老虎機槽條物件箱
     if (targetSlotBarBox != null) {
       targetSlotBarBox = null;
+    }
+    // 回應父層
+    if (onRemoveSlotBarBox != null) {
+      onRemoveSlotBarBox!(index);
     }
   }
 
@@ -213,7 +229,7 @@ class SlotBar extends PositionComponent with Gear, HasGameRef<SlotGame> {
       print("SlotBar $index is spin!!! Do!!!");
       targetSlotBarBox!.isStay = false;
       // targetSlotBarBox!.isCollisionWithBottomReplyBox = false;
-      targetSlotBarBox!.isMove = true;
+      targetSlotBarBox!.setIsMove(true);
     }
   }
 }
